@@ -1,0 +1,39 @@
+main: io.github.ledlamp.mppbridge.Main
+name: MPPbridge
+version: indev
+author: Lamp
+description: Bridges www.multiplayerpiano.com to Minecraft
+commands:
+  mppconnect:
+    description: Connects to a MPP room (defaults to lobby)
+    permission: mppbridge.connect
+  mppdisconnect:
+    description: Disconnects the MPP client
+    permission: mppbridge.disconnect
+  mpptogglechat:
+    description: Toggles bridging of chat messages & announcements
+    permission: mppbridge.togglechat
+  mppinfo:
+    aliases: [mpp, mppppl, mpponline]
+    description: Shows connected room and participants online
+    permission: mppbridge.info
+  mppurl:
+    description: Gives URL of the MPP room that the Minecraft server is connected to.
+    permission: mppbridge.url
+  mppsay:
+    aliases: ms
+    description: Sends a raw chat message to MPP (regardless of whether the chat bridging is enabled)
+    usage: "Usage: /<command> <message>"
+    permission: mppbridge.say
+  mppsetname:
+    description: Set name of the MPP client’s user
+    usage: "Usage: /<command> <name>"
+    permission: mppbridge.setname
+  mpppress:
+    usage: "Usage: /<command> <note> <velocity>"
+    description: Sends a start note
+    permission: mppbridge.press
+  mpprelease:
+    usage: "Usage: /<command> <note>"
+    description: Sends a stop note
+    permission: mppbridge.release
