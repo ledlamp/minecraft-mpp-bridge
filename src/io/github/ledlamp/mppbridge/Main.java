@@ -173,10 +173,10 @@ public class Main extends JavaPlugin implements Listener {
 	public void onPlayerQuit(PlayerQuitEvent event) {
 		sendChatToMPP(event.getQuitMessage());
 	}
-	@EventHandler
+	/*@EventHandler
 	public void onPlayerAchievement(PlayerAdvancementDoneEvent event) {
 		sendChatToMPP(event.getPlayer().getName() + " has made the advancement " + event.getAdvancement().toString()); //TODO how to get name of achievement??
-	}
+	}*/
 	
 	
 	
