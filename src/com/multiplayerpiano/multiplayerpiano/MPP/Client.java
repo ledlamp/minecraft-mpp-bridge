@@ -114,7 +114,7 @@ public class Client extends EventEmitter {
                 stopTimers();
                 emit("disconnect", reason);
                 emit("status", "Offline mode");
-                // reconnect!
+                // reconnect! //TODO array index out of bounds error
                 if(connectionTime > 0) {
                     connectionTime = 0;
                     connectionAttempts = 0;

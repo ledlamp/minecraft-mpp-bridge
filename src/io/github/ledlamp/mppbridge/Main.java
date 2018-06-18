@@ -1,10 +1,11 @@
 package io.github.ledlamp.mppbridge;
 
 import java.io.UnsupportedEncodingException;
-//import java.awt.Color;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.Executors;
@@ -13,8 +14,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Color;
-import org.bukkit.DyeColor;
 import org.bukkit.SoundCategory;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -23,7 +22,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerAdvancementDoneEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -32,7 +30,6 @@ import org.json.JSONObject;
 
 import com.multiplayerpiano.multiplayerpiano.MPP.Callback;
 import com.multiplayerpiano.multiplayerpiano.MPP.Client;
-import org.mctourney.autoreferee.util.ColorConverter;
 
 public class Main extends JavaPlugin implements Listener {
 
@@ -40,6 +37,7 @@ public class Main extends JavaPlugin implements Listener {
 	Client MPPclient;
 	Boolean bridgeMPPchat = true;
 	String lastChannel_id;
+	List<String> muted_ids = new ArrayList<String>();
 	
 	
 	
@@ -104,6 +102,7 @@ public class Main extends JavaPlugin implements Listener {
 		MPPclient.on("n", new Callback() {
 			public void call(Object... args) {
 				JSONObject msg = (JSONObject)args[0];
+				if (muted_ids.contains(MPPclient.ppl.optJSONObject(msg.optString("p")).optString("_id"))) return;
 				long now = System.currentTimeMillis();
 				long t = msg.optLong("t", now) - MPPclient.serverTimeOffset + 1000 - System.currentTimeMillis();
 				JSONArray notes = msg.optJSONArray("n");
@@ -137,6 +136,7 @@ public class Main extends JavaPlugin implements Listener {
 				JSONObject msg = (JSONObject)args[0];
 				JSONObject participant = msg.optJSONObject("p");
 				String _id = participant.optString("_id");
+				if (muted_ids.contains(_id)) return;
 				String name = participant.optString("name");
 				String message = msg.optString("a");
 				if (message.startsWith("\ufffc")) return;
@@ -210,6 +210,48 @@ public class Main extends JavaPlugin implements Listener {
 				bridgeMPPchat = true;
 				broadcast("Chat bridging enabled.");
 			}
+			return true;
+		}
+		
+		
+		
+		
+		if (cmd.equals("mppmute")) {
+			String query = merge(args);
+			for (int i = 0; i < MPPclient.ppl.names().length(); i++) {
+				JSONObject p = MPPclient.ppl.optJSONObject(MPPclient.ppl.names().optString(i));
+				if (p.optString("name").equals(query)) {
+					muted_ids.add(p.optString("_id"));
+					sender.sendMessage("Muted player named "+p.optString("name")+" with _id "+p.optString("_id"));
+					return true;
+				}
+			}
+			if (query.length() == 24) {
+				muted_ids.add(query);
+				sender.sendMessage("Muted player with _id"+query);
+				return true;
+			}
+			sender.sendMessage("Could not find player named "+query);
+			
+			return true;
+		}
+		
+		if (cmd.equals("mppunmute")) {
+			String query = merge(args);
+			if (muted_ids.contains(query)) {
+				muted_ids.remove(query);
+				sender.sendMessage("Unmuted _id "+query);
+				return true;
+			}
+			for (int i = 0; i < MPPclient.ppl.names().length(); i++) {
+				JSONObject p = MPPclient.ppl.optJSONObject(MPPclient.ppl.names().optString(i));
+				if (p.optString("name").equals(query)) {
+					muted_ids.remove(p.optString("_id"));
+					sender.sendMessage("Unmuted player named "+p.optString("name")+" with _id "+p.optString("_id"));
+					return true;
+				}
+			}
+			sender.sendMessage("Could not find player, or given _id is not muted.");
 			return true;
 		}
 		
@@ -367,117 +409,5 @@ public class Main extends JavaPlugin implements Listener {
 		}
 		return color;
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	// garbage below
-	/*
-	
-	
-	
-	
-	
-	/*private String filterFormattingCodes(String string) { // dont work
-		String formattingCodes[] = {
-			"§0", "§1", "§2", "§3", "§4", "§5", "§6", "§7", "§8", "§9", "§a", "§b", "§c", "§d", "§e", "§f"
-		};
-		for (int i = 0; i < formattingCodes.length; i++) {
-			string = string.replaceAll("/"+formattingCodes[i]+"/g", "");
-		}
-		return string;
-	}
-	
-	private String convertHexColorToNearestMinecraftColor(String hex) {
-		
-		String[][] mcColorCodeMap = {
-		    {"000000", "0"},
-		    {"000AAA", "1"},
-		    {"00AA00", "2"},
-		    {"00AAAA", "3"},
-		    {"AA0000", "4"},
-		    {"AA00AA", "5"},
-		    {"FFAA00", "6"},
-		    {"AAAAAA", "7"},
-		    {"555555", "8"},
-		    {"5555FF", "9"},
-		    {"55FF55", "a"},
-		    {"55FFFF", "b"},
-		    {"FF5555", "c"},
-		    {"FF55FF", "d"},
-		    {"FFFF55", "e"},
-		    {"FFFFFF", "f"}
-		};
-		
-		java.awt.Color rgbColor = hex2Rgb(hex);
-		int red = rgbColor.getRed();
-		int green = rgbColor.getGreen();
-		int blue = rgbColor.getBlue();
-		
-		Map<String, Integer> colorDiffs = new HashMap<>();
 
-		for (int i = 0; i < mcColorCodeMap.length; i++) {
-			String[] link = mcColorCodeMap[i];
-			String mcHex = link[0]; String mcChar = link[1];
-			
-			java.awt.Color mcRgbColor = hex2Rgb(mcHex);
-			int mcRed = mcRgbColor.getRed();
-			int mcGreen = mcRgbColor.getGreen();
-			int mcBlue = mcRgbColor.getBlue();
-			
-			int redDiff = mcRed - red;
-			int greenDiff = mcGreen - green;
-			int blueDiff = mcBlue - blue;
-			int totalDiff = redDiff + greenDiff + blueDiff;
-			
-			colorDiffs.put(mcChar, totalDiff);
-		}
-		
-		int lowestDiff = 99999999;
-		for (Integer diff : colorDiffs.values()) {
-			if (diff < lowestDiff) lowestDiff = diff;
-		}
-		
-		String theClosestMatchingMcColorChar = "k";
-		for (Map.Entry<String, Integer> entry : colorDiffs.entrySet()) {
-			String mcChar = entry.getKey(); int diff = entry.getValue();
-			if (lowestDiff == diff) {
-				theClosestMatchingMcColorChar = mcChar; break;
-			}
-		}
-		
-		return theClosestMatchingMcColorChar;
-	}
-	
-	public static java.awt.Color hex2Rgb(String colorStr) {
-		if (colorStr.startsWith("#"))
-	    return new java.awt.Color(
-	            Integer.valueOf( colorStr.substring( 1, 3 ), 16 ),
-	            Integer.valueOf( colorStr.substring( 3, 5 ), 16 ),
-	            Integer.valueOf( colorStr.substring( 5, 7 ), 16 ) );
-		else
-			return new java.awt.Color(
-		            Integer.valueOf( colorStr.substring( 0, 2 ), 16 ),
-		            Integer.valueOf( colorStr.substring( 2, 4 ), 16 ),
-		            Integer.valueOf( colorStr.substring( 4, 6 ), 16 ) );
-	}
-	
-	
-	private char convertHexColorToNearestMinecraftColor(String hexColor) {
-		java.awt.Color jColor = java.awt.Color.decode(hexColor);
-		DyeColor dColor = DyeColor.getByColor(Color.fromRGB(jColor.getRed(), jColor.getGreen(), jColor.getBlue())); // null
-		ChatColor cColor = ColorConverter.dyeToChat(dColor);
-		return cColor.getChar();
-	}*/
-	
-	
-	
-	
-	
-	
 }

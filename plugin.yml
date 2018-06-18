@@ -1,6 +1,6 @@
 main: io.github.ledlamp.mppbridge.Main
 name: MPPbridge
-version: indev
+version: 2018.06.18
 author: Lamp
 description: Bridges www.multiplayerpiano.com to Minecraft
 commands:
@@ -37,3 +37,11 @@ commands:
     usage: "Usage: /<command> <note>"
     description: Sends a stop note
     permission: mppbridge.release
+  mppmute:
+    usage: "Usage: /<command> <name or _id>"
+    description: Mutes the participant with the given name or _id
+    permission: mppbridge.mute
+  mppunmute:
+    usage: "Usage: /<command> <name or _id>"
+    description: Unmutes the participant with the given name or _id
+    permission: mppbridge.unmute
